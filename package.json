@@ -1,0 +1,12 @@
+{
+  "name": "sqlern",
+  "version": "1.0.0",
+  "description": "SQLITE3, EXPRESS, REACT AND NODE full-stack project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cd client && npm start"
+  },
+  "author": "sagan",
+  "license": "ISC"
+}
