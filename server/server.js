@@ -1,24 +1,19 @@
 const express = require("express");
-const sqlite3 = require("sqlite3");
-
 const app = express();
 
-const db = new sqlite3.Database("../db/chinook.db", err => {
-  if (err) {
-    return console.error(err.message);
-  }
-  const dbFileName = db.filename.match(/(\w+)\b\.(\w+)\b$/g);
-  console.log(`Connected to the ${dbFileName} SQlites database.`);
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
 });
 
-const closeConnection = () => {
-  db.close(err => {
-    if (err) {
-      return console.error(err.message);
-    }
-    const dbFileName = db.filename.match(/(\w+)\b\.(\w+)\b$/g);
-    console.log(
-      `Closed connection to the ${dbFileName} SQlite database connection.`
-    );
-  });
-};
+// API Routes
+
+// invoices route
+app.use("/api/invoices", require("./routes/api/invoices/invoices"));
+
+// geners route
+app.use("/api/genres", require("./routes/api/genres/genres"));
+
+// cats route
+app.use("/api/cats", require("./routes/api/cats/cats"));
