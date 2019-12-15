@@ -72,4 +72,6 @@
 
     $ npm start
 
-## 17. Add API's with different db methods
+## 17. Add GET API's with different db methods
+
+## 18. Add interface/error handling for GET methods

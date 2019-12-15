@@ -12,7 +12,7 @@ router.get("/", (req, res) => {
       res.json({ msg: `${err.message}` });
     } else {
       const genres = rows.map(e => {
-        return e.Name;
+        return e;
       });
       if (genres.length >= 1) {
         res.json(genres);

@@ -9,11 +9,17 @@ app.listen(PORT, () => {
 
 // API Routes
 
+// invoice route
+app.use("/api/invoice", require("./routes/api/invoice/invoice"));
+
 // invoices route
 app.use("/api/invoices", require("./routes/api/invoices/invoices"));
 
-// geners route
+// genres route
 app.use("/api/genres", require("./routes/api/genres/genres"));
 
 // cats route
 app.use("/api/cats", require("./routes/api/cats/cats"));
+
+// chinook route
+app.use("/api/chinook", require("./routes/api/chinook/chinook"));
