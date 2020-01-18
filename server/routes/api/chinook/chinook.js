@@ -53,4 +53,28 @@ router.get("/:table", (req, res) => {
   });
 });
 
+router.delete("/:table/:column/:id", (req, res) => {
+  const { table, column, id } = req.params;
+  //   check if item with provided ID exists and delete if true
+  const sql = `SELECT ${column} FROM ${table} WHERE ${column} = ${id}`;
+  db.get(sql, (err, row) => {
+    if (row) {
+      const sql = `DELETE FROM ${table} WHERE ${column} = ${id}`;
+      db.run(sql, [], err => {
+        if (!err) {
+          res.json({
+            msg: `Item in table ${table} with the ID of ${id} is deleted`
+          });
+        } else {
+          res.status(404).json({ msg: `${err}` });
+        }
+      });
+    } else {
+      res.status(404).json({
+        msg: `Item in table ${table} with the ID of ${id} is not found`
+      });
+    }
+  });
+});
+
 module.exports = router;

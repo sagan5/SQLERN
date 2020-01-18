@@ -7,14 +7,8 @@ class Toolbar extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedButton: null,
-      showGenres: false
+      selectedButton: null
     };
-  }
-
-  // lift up state to app.js
-  handleShowChange(form) {
-    this.props.showInputForm(form);
   }
 
   render() {
@@ -22,9 +16,9 @@ class Toolbar extends Component {
       <Button
         variant="outline-primary"
         className="m-2"
-        // lift up state to app.js
+        // lift up state to app.js to show correct input form
         onClick={() => {
-          this.handleShowChange("genres");
+          this.props.showInputForm("genres");
         }}
       >
         Get genres
@@ -36,7 +30,7 @@ class Toolbar extends Component {
         variant="outline-primary"
         className="m-2"
         onClick={() => {
-          this.handleShowChange("invoice");
+          this.props.showInputForm("invoice");
         }}
       >
         Get invoice by ID
@@ -48,7 +42,7 @@ class Toolbar extends Component {
         variant="outline-primary"
         className="m-2"
         onClick={() => {
-          this.handleShowChange("invoices");
+          this.props.showInputForm("invoices");
         }}
       >
         Get invoices by ID's
@@ -60,7 +54,7 @@ class Toolbar extends Component {
         variant="outline-dark"
         className="m-2"
         onClick={() => {
-          this.handleShowChange("chinook");
+          this.props.showInputForm("chinook");
         }}
       >
         Search DB

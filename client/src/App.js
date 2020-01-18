@@ -7,9 +7,6 @@ import Invoice from "./components/Invoice/Invoice";
 import Invoices from "./components/Invoices/Invoices";
 import Chinook from "./components/Chinook/Chinook";
 import Toolbar from "./containers/Toolbar/Toolbar";
-import ResultTable from "./containers/ResultTable/ResultTable";
-
-import { errorLogging, enterPressHandler } from "./helpers";
 
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -18,67 +15,34 @@ import Col from "react-bootstrap/Col";
 class App extends Component {
   constructor(props) {
     super(props);
-    // bind this to the function
-    this.errorLogging = errorLogging.bind(this);
-    this.enterPressHandler = enterPressHandler.bind(this);
     this.state = {
-      showInput: "",
-      results: null,
-      error: false,
-      errorData: null
+      showInput: ""
     };
   }
 
   showInputFormHandler = form => {
-    if (this.state.showInput !== form) {
-      this.setState({ showInput: form, results: null });
-    } else {
-      this.setState({ showInput: "", results: null });
-    }
-  };
-
-  getResults = results => {
-    this.setState({ results: results });
+    this.state.showInput !== form
+      ? this.setState({ showInput: form })
+      : this.setState({ showInput: "" });
   };
 
   render() {
-    let results = null;
-
-    if (this.state.results) {
-      results = (
-        <Row className="justify-content-center">
-          <Col md="auto">
-            <ResultTable data={this.state.results} />
-          </Col>
-        </Row>
-      );
-    }
-
     return (
       <Container>
         <Row className="justify-content-center">
           <Col md="auto">
+            {/* pass function to toolber.js to show correct input form*/}
             <Toolbar showInputForm={this.showInputFormHandler} />
           </Col>
         </Row>
         <Row className="justify-content-center">
           <Col md="auto">
-            {this.state.showInput === "genres" ? (
-              // pass getResults function to child to lift state up
-              <Genres getResults={this.getResults} />
-            ) : null}
-            {this.state.showInput === "invoice" ? (
-              <Invoice getResults={this.getResults} />
-            ) : null}
-            {this.state.showInput === "invoices" ? (
-              <Invoices getResults={this.getResults} />
-            ) : null}
-            {this.state.showInput === "chinook" ? (
-              <Chinook getResults={this.getResults} />
-            ) : null}
+            {this.state.showInput === "genres" ? <Genres /> : null}
+            {this.state.showInput === "invoice" ? <Invoice /> : null}
+            {this.state.showInput === "invoices" ? <Invoices /> : null}
+            {this.state.showInput === "chinook" ? <Chinook /> : null}
           </Col>
         </Row>
-        {results}
       </Container>
     );
   }

@@ -2,7 +2,11 @@ const sqlite3 = require("sqlite3").verbose();
 
 const db = new sqlite3.Database(
   "../db/chinook.db",
-  sqlite3.OPEN_READONLY,
+  // no delete statements allowed
+  // sqlite3.OPEN_READONLY,
+
+  sqlite3.OPEN_READWRITE,
+
   err => {
     if (err) {
       return console.error(err.message);

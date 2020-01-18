@@ -75,3 +75,5 @@
 ## 17. Add GET API's with different db methods
 
 ## 18. Add interface/error handling for GET methods
+
+## 19. Add DELETE function and user alerts

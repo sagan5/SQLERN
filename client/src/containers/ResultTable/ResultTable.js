@@ -1,67 +1,129 @@
-import React from "react";
+import React, { Component } from "react";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 import Table from "react-bootstrap/Table";
+import Button from "react-bootstrap/Button";
 
-import axios from "axios";
-import withErrorHandler from "../../hoc/withErrorHandler/withErrorHandler";
-// table rendering functions
+class ResultTable extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      results: this.props.data,
+      table: this.props.table,
+      error: null
+    };
+  }
 
-// table head
-const renderTableHead = head => {
-  if (Array.isArray(head)) {
-    return (
-      <tr>
-        {Object.keys(head[0]).map((key, index) => {
-          return <td key={index}>{key}</td>;
-        })}
-      </tr>
+  // prevent updating ResultTable component when entering ids in parent components
+  shouldComponentUpdate = nextProps => {
+    if (this.props.data === nextProps.data) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  render() {
+    console.log("results mounted");
+
+    // table buttons
+    const editButton = (
+      <Button
+        variant="outline-info"
+        // className="m-2"
+        // onClick={() => {
+        //   this.handleShowChange("genres");
+        // }}
+      >
+        Edit
+      </Button>
     );
-  } else {
+
+    // table rendering functions
+    // table head
+    const renderTableHead = head => {
+      // if response is array
+      if (Array.isArray(head)) {
+        return (
+          <tr>
+            {Object.keys(head[0]).map((key, index) => {
+              return <td key={index}>{key}</td>;
+            })}
+            <td colSpan="2"></td>
+          </tr>
+        );
+      } else {
+        return (
+          // if response is object
+          <tr>
+            {Object.keys(head).map((key, index) => {
+              return <td key={index}>{key}</td>;
+            })}
+            <td colSpan="2"></td>
+          </tr>
+        );
+      }
+    };
+
+    // table body
+    const renderTableBody = body => {
+      // if response is array
+      if (Array.isArray(body)) {
+        return body.map((value, index) => {
+          return (
+            <tr key={index}>
+              {Object.values(value).map((value, index) => {
+                return <td key={index}>{value}</td>;
+              })}
+              <td>{editButton}</td>
+              <td>
+                <Button
+                  // delete button
+                  variant="outline-danger"
+                  onClick={() => {
+                    this.props.deleteButtonFunc(value[Object.keys(value)[0]]);
+                  }}
+                >
+                  Delete item {value[Object.keys(value)[0]]}
+                </Button>
+              </td>
+            </tr>
+          );
+        });
+      } else {
+        // if response is object
+        return (
+          <tr>
+            {Object.values(body).map((value, index) => {
+              return <td key={index}>{value}</td>;
+            })}
+            <td>{editButton}</td>
+            <td>
+              <Button
+                // delete button
+                variant="outline-danger"
+                onClick={() => {
+                  this.props.deleteButtonFunc([Object.values(body)[0]]);
+                }}
+              >
+                Delete item {[Object.values(body)[0]]}
+              </Button>
+            </td>
+          </tr>
+        );
+      }
+    };
     return (
-      <tr>
-        {Object.keys(head).map((key, index) => {
-          return <td key={index}>{key}</td>;
-        })}
-      </tr>
+      <Row className="justify-content-center">
+        <Col md="auto">
+          <Table striped hover>
+            <thead>{renderTableHead(this.props.data)}</thead>
+            <tbody>{renderTableBody(this.props.data)}</tbody>
+          </Table>
+        </Col>
+      </Row>
     );
   }
-};
+}
 
-// table body
-const renderTableBody = body => {
-  if (Array.isArray(body)) {
-    return body.map((value, index) => {
-      return (
-        <tr key={index}>
-          {Object.values(value).map((value, index) => {
-            return <td key={index}>{value}</td>;
-          })}
-          <td>Edit</td>
-          <td>Delete</td>
-        </tr>
-      );
-    });
-  } else {
-    return (
-      <tr>
-        {Object.values(body).map((value, index) => {
-          return <td key={index}>{value}</td>;
-        })}
-        <td>Edit</td>
-        <td>Delete</td>
-      </tr>
-    );
-  }
-};
-
-const resultTable = props => {
-  console.log("results mounted");
-  return (
-    <Table striped hover>
-      <thead>{renderTableHead(props.data)}</thead>
-      <tbody>{renderTableBody(props.data)}</tbody>
-    </Table>
-  );
-};
-
-export default withErrorHandler(resultTable, axios);
-// export default resultTable;
+export default ResultTable;

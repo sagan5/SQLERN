@@ -17,8 +17,34 @@ router.get("/", (req, res) => {
       if (genres.length >= 1) {
         res.json(genres);
       } else {
-        res.json({ msg: `query: "${sql}" returned no results` });
+        res.status(404).json({ msg: `There are no genres in database` });
       }
+    }
+  });
+});
+
+// delete single genre by ID
+router.delete("/:id", (req, res) => {
+  const genreId = req.params.id;
+
+  //   check if genre with provided ID exists and delete if true
+  const sql = `SELECT GenreId FROM genres WHERE GenreId = ${genreId}`;
+  db.get(sql, (err, row) => {
+    if (row) {
+      const sql = `DELETE FROM genres WHERE GenreId = ${genreId}`;
+      db.run(sql, [], err => {
+        if (!err) {
+          res.json({
+            msg: `Genre with the ID of ${genreId} is deleted`
+          });
+        } else {
+          res.status(404).json({ msg: `${err}` });
+        }
+      });
+    } else {
+      res
+        .status(404)
+        .json({ msg: `Genre with the ID of ${genreId} doesn't exist` });
     }
   });
 });

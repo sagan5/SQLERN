@@ -7,14 +7,14 @@ import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 
-import { errorLogging, enterPressHandler } from "../../helpers";
-
 import withErrorHandler from "../../hoc/withErrorHandler/withErrorHandler";
+import ResultTable from "../../containers/ResultTable/ResultTable";
+import DeleteModal from "../../containers/Modals/DeleteModal/DeleteModal";
+import { enterPressHandler } from "../../helpers";
 
 class Chinook extends Component {
   constructor(props) {
     super(props);
-    this.errorLogging = errorLogging.bind(this);
     this.enterPressHandler = enterPressHandler.bind(this);
     this.state = {
       tables: [],
@@ -22,13 +22,21 @@ class Chinook extends Component {
       columns: [],
       selectedColumn: "",
       searchString: "",
+      results: [],
+      lastEntryDeleted: false,
+      showDeleteModal: false,
+      deletedEntryId: null,
       error: null
     };
   }
 
   componentDidMount() {
-    console.log("chinook mounted");
+    console.log("chinook did mount");
     this.getTables();
+  }
+
+  componentWillUnmount() {
+    console.log("chinook will unmount");
   }
 
   getTables = () => {
@@ -39,10 +47,13 @@ class Chinook extends Component {
           tables: res.data,
           selectedTable: res.data[0]
         });
-        this.getColumns(res.data[0]);
+      })
+      .then(() => {
+        this.getColumns(this.state.selectedTable);
       })
       .catch(err => {
         this.setState({ error: err });
+        console.log("getTables error", err);
       });
   };
 
@@ -57,6 +68,7 @@ class Chinook extends Component {
       })
       .catch(err => {
         this.setState({ error: err });
+        console.log("getColumns error", err);
       });
   };
 
@@ -69,8 +81,7 @@ class Chinook extends Component {
       .get(`chinook/${table}/${column}/${string}`)
       .then(res => {
         if (res.data) {
-          // lift up results to app.js
-          this.props.getResults(res.data);
+          this.setState({ results: res.data });
         } else {
           this.setState({
             error: true
@@ -79,24 +90,84 @@ class Chinook extends Component {
       })
       .catch(err => {
         this.setState({ error: err });
+        console.log("getResults error", err);
       });
   };
 
-  tableSelectionHandler = event => {
-    const table = event.target.value;
+  deleteEntryByIdHandler = id => {
+    const table = this.state.selectedTable;
+    const column = this.state.columns[0];
+    axios
+      .delete(`chinook/${table}/${column}/${id}`)
+      .then(res => {
+        if (res.status === 200) {
+          // remove deleted entry from results to update state and cause re-render
+          // clone results
+          const oldResults = [...this.state.results];
+          const newResults = [...this.state.results];
+          // find index of deleted entry object within an array
+          const index = oldResults.findIndex(e => e[Object.keys(e)[0]] === id);
+          // mutate results array and remove deleted entry
+          newResults.splice(index, 1);
+          // check if last invoice is entry
+          if (newResults.length > 0) {
+            this.setState({ results: newResults });
+          } else {
+            this.setState({ lastEntryDeleted: true });
+          }
+          this.setState({ showDeleteModal: true, deletedEntryId: id });
+        } else {
+          alert(`Response status is ${res.status}`);
+        }
+      })
+      .catch(err => {
+        this.setState({ error: err });
+        console.log("deleteEntryByIdHandler error", err);
+      });
+  };
+
+  tableSelectionHandler = e => {
+    const table = e.target.value;
     this.setState({ selectedTable: table });
     this.getColumns(table);
   };
 
-  columnSelectionHandler = event => {
-    this.setState({ selectedColumn: event.target.value });
+  columnSelectionHandler = e => {
+    this.setState({ selectedColumn: e.target.value });
   };
 
-  stringChangeHandler = event => {
-    this.setState({ searchString: event.target.value });
+  stringChangeHandler = e => {
+    this.setState({ searchString: e.target.value });
+  };
+
+  modalCloseHandler = () => {
+    this.setState({
+      showDeleteModal: false
+    });
   };
 
   render() {
+    let results = null;
+
+    if (this.state.results.length !== 0) {
+      results = (
+        <ResultTable
+          data={this.state.results}
+          // pass deleteEntryByIdHandler function to results table, delete button
+          deleteButtonFunc={this.deleteEntryByIdHandler}
+        />
+      );
+    }
+
+    if (this.state.lastEntryDeleted) {
+      results = (
+        <Row className="justify-content-center">
+          <Col md="auto">
+            <p>Last entry was deleted</p>
+          </Col>
+        </Row>
+      );
+    }
     return (
       <Container>
         <Row className="justify-content-center">
@@ -164,6 +235,14 @@ class Chinook extends Component {
             </Form>
           </Col>
         </Row>
+        <DeleteModal
+          showModal={this.state.showDeleteModal}
+          closeHandler={this.modalCloseHandler}
+        >
+          Entry with ID {this.state.deletedEntryId} from{" "}
+          {this.state.selectedTable} table was deleted!
+        </DeleteModal>
+        {results}
       </Container>
     );
   }

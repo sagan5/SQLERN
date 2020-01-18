@@ -14,6 +14,7 @@ router.get("/:array", (req, res) => {
     (err, row) => {
       results.push(row);
       if (results.length > 1)
+        // sort results in ascending order by id
         results.sort(function(a, b) {
           return (
             invoiceIds.indexOf(a.InvoiceId) - invoiceIds.indexOf(b.InvoiceId)
@@ -25,7 +26,9 @@ router.get("/:array", (req, res) => {
         res.status(404).json({ msg: `${err}` });
       } else {
         if (results.length === 0) {
-          res.status(404).json({ msg: `Please enter at least one invoice ID` });
+          res
+            .status(404)
+            .json({ msg: `No invoices were found with Ids: ${invoiceIds}` });
         } else {
           res.json(results);
         }

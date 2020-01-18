@@ -7,9 +7,13 @@ import Aux from "../Auxiliary/Auxiliary";
 
 const withErrorHandler = (WrappedComponent, axios) => {
   return class extends Component {
-    state = {
-      error: null
-    };
+    constructor(props) {
+      super(props);
+      // this.enterPressHandler = enterPressHandler.bind(this);
+      this.state = {
+        error: null
+      };
+    }
 
     _isMounted = false;
 
@@ -56,13 +60,26 @@ const withErrorHandler = (WrappedComponent, axios) => {
     componentWillUnmount = () => {
       this._isMounted = false;
       console.log("errorhandler component will unmount");
-      // clean old interceptors wo it would not cause errors
+      // clean old interceptors so they would not cause errors
       axios.interceptors.request.eject(this.reqInterceptor);
       axios.interceptors.response.eject(this.resInterceptor);
     };
 
     errorConfirmedHandler = () => {
       this.setState({ error: false });
+    };
+
+    enterPressHandler = (event, func) => {
+      console.log("hello mister");
+      if (event.key === "Enter") {
+        event.preventDefault();
+        this.setState({ error: false });
+      }
+    };
+
+    // focus on close button automaticaly
+    focusCloseButton = () => {
+      document.getElementById("closeButton").focus();
     };
 
     render() {
@@ -100,13 +117,20 @@ const withErrorHandler = (WrappedComponent, axios) => {
           <Modal
             show={this.state.error ? true : false}
             onHide={this.errorConfirmedHandler}
+            // when modal loads close button is focused
+            onEntered={this.focusCloseButton}
           >
             <Modal.Header closeButton>
               <Modal.Title>Error message</Modal.Title>
             </Modal.Header>
             <Modal.Body>{errorContent}</Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onClick={this.errorConfirmedHandler}>
+              <Button
+                active={true}
+                variant="secondary"
+                onClick={this.errorConfirmedHandler}
+                id="closeButton"
+              >
                 Close
               </Button>
             </Modal.Footer>
