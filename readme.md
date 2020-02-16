@@ -77,3 +77,7 @@
 ## 18. Add interface/error handling for GET methods
 
 ## 19. Add DELETE function and user alerts
+
+## 20. Install body-parser for POST requests
+
+## 21. Add EDIT and ADD buttons

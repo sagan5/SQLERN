@@ -26,19 +26,6 @@ class ResultTable extends Component {
   render() {
     console.log("results mounted");
 
-    // table buttons
-    const editButton = (
-      <Button
-        variant="outline-info"
-        // className="m-2"
-        // onClick={() => {
-        //   this.handleShowChange("genres");
-        // }}
-      >
-        Edit
-      </Button>
-    );
-
     // table rendering functions
     // table head
     const renderTableHead = head => {
@@ -75,7 +62,17 @@ class ResultTable extends Component {
               {Object.values(value).map((value, index) => {
                 return <td key={index}>{value}</td>;
               })}
-              <td>{editButton}</td>
+              <td>
+                <Button
+                  // edit button
+                  variant="outline-info"
+                  onClick={() => {
+                    this.props.editButtonFunc([Object.values(value)[0]]);
+                  }}
+                >
+                  Edit
+                </Button>
+              </td>
               <td>
                 <Button
                   // delete button
@@ -84,7 +81,7 @@ class ResultTable extends Component {
                     this.props.deleteButtonFunc(value[Object.keys(value)[0]]);
                   }}
                 >
-                  Delete item {value[Object.keys(value)[0]]}
+                  Delete
                 </Button>
               </td>
             </tr>
@@ -97,7 +94,17 @@ class ResultTable extends Component {
             {Object.values(body).map((value, index) => {
               return <td key={index}>{value}</td>;
             })}
-            <td>{editButton}</td>
+            <td>
+              <Button
+                // edit button
+                variant="outline-info"
+                onClick={() => {
+                  this.props.editButtonFunc([Object.values(body)[0]]);
+                }}
+              >
+                Edit
+              </Button>
+            </td>
             <td>
               <Button
                 // delete button
@@ -106,7 +113,7 @@ class ResultTable extends Component {
                   this.props.deleteButtonFunc([Object.values(body)[0]]);
                 }}
               >
-                Delete item {[Object.values(body)[0]]}
+                Delete
               </Button>
             </td>
           </tr>

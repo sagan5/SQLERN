@@ -10,6 +10,8 @@ import Button from "react-bootstrap/Button";
 import withErrorHandler from "../../hoc/withErrorHandler/withErrorHandler";
 import ResultTable from "../../containers/ResultTable/ResultTable";
 import DeleteModal from "../../containers/Modals/DeleteModal/DeleteModal";
+import AddModal from "../../containers/Modals/AddModal/AddModal";
+import EditModal from "../../containers/Modals/EditModal/EditModal";
 import { enterPressHandler } from "../../helpers";
 
 class Chinook extends Component {
@@ -26,6 +28,10 @@ class Chinook extends Component {
       lastEntryDeleted: false,
       showDeleteModal: false,
       deletedEntryId: null,
+      showAddModal: false,
+      tableColumns: null,
+      showEditModal: false,
+      editEntryData: null,
       error: null
     };
   }
@@ -142,8 +148,88 @@ class Chinook extends Component {
 
   modalCloseHandler = () => {
     this.setState({
-      showDeleteModal: false
+      showDeleteModal: false,
+      showAddModal: false,
+      showEditModal: false
     });
+  };
+
+  showAddModalHandler = table => {
+    if (this.state.selectedTable) {
+      axios
+        .get(`/chinook/${table}`)
+        .then(res => {
+          // convert received array of table columns to object
+          const tableColumnsObject = res.data.reduce(
+            (el, key) => Object.assign(el, { [key]: "" }),
+            {}
+          );
+          this.setState({ tableColumns: tableColumnsObject });
+        })
+        .then(() => {
+          this.setState({ showAddModal: true });
+        });
+    } else {
+      alert("no table selected");
+    }
+  };
+
+  addEntryHandler = newEntry => {
+    axios
+      .post(`/chinook/add/${this.state.selectedTable}`, { newEntry })
+      .then(res => {
+        if (res.status === 200) {
+          alert(res.data.msg);
+        } else {
+          alert("Something bad happened");
+        }
+      })
+      .catch(err => {
+        this.setState({ error: err });
+        console.log("addEntryHandler error", err);
+      });
+  };
+
+  getEntryDataHandler = id => {
+    axios
+      .get(
+        `chinook/edit/${this.state.selectedTable}/${this.state.columns[0]}/${id}`
+      )
+      .then(res => {
+        if (res.status === 200) {
+          this.setState({ editEntryData: res.data });
+        } else {
+          alert("Something bad happened");
+        }
+      })
+      .then(() => {
+        this.setState({ showEditModal: true });
+      })
+      .catch(err => {
+        this.setState({ error: err });
+        console.log("getEntryDataHandler error", err);
+      });
+  };
+
+  updateEntryDataHandler = data => {
+    axios
+      .put(
+        `chinook/edit/${this.state.selectedTable}/${
+          data[Object.keys(data)[0]]
+        }`,
+        { entryData: data }
+      )
+      .then(res => {
+        if (res.status === 200) {
+          alert(res.data.msg);
+          this.modalCloseHandler();
+        } else {
+          alert(res.data.msg);
+        }
+      })
+      .then(() => {
+        this.getResults();
+      });
   };
 
   render() {
@@ -155,6 +241,7 @@ class Chinook extends Component {
           data={this.state.results}
           // pass deleteEntryByIdHandler function to results table, delete button
           deleteButtonFunc={this.deleteEntryByIdHandler}
+          editButtonFunc={this.getEntryDataHandler}
         />
       );
     }
@@ -168,6 +255,50 @@ class Chinook extends Component {
         </Row>
       );
     }
+
+    let deleteModal = null;
+
+    if (this.state.showDeleteModal) {
+      deleteModal = (
+        <DeleteModal
+          showModal={this.state.showDeleteModal}
+          closeHandler={this.modalCloseHandler}
+        >
+          Entry with ID {this.state.deletedEntryId} from{" "}
+          {this.state.selectedTable} table was deleted!
+        </DeleteModal>
+      );
+    }
+
+    let addModal = null;
+
+    if (this.state.showAddModal) {
+      addModal = (
+        <AddModal
+          showModal={this.state.showAddModal}
+          modalTitle="Add new invoice"
+          addEntryHandler={this.addEntryHandler}
+          tableColumns={this.state.tableColumns}
+          closeHandler={this.modalCloseHandler}
+        />
+      );
+    }
+
+    let editModal = null;
+
+    if (this.state.showEditModal) {
+      editModal = (
+        <EditModal
+          showModal={this.state.showEditModal}
+          modalTitle="Edit entry data"
+          editEntryHandler={this.getEntryDataHandler}
+          updateEntryHandler={this.updateEntryDataHandler}
+          closeHandler={this.modalCloseHandler}
+          entryData={this.state.editEntryData}
+        ></EditModal>
+      );
+    }
+
     return (
       <Container>
         <Row className="justify-content-center">
@@ -225,24 +356,29 @@ class Chinook extends Component {
               <Form.Group controlId="chinookSearch">
                 <Button
                   variant="primary"
-                  size="lg"
+                  size="m-2 lg"
                   active
                   onClick={this.getResults}
                 >
                   Search
                 </Button>
+                <Button
+                  variant="primary"
+                  className="m-2 lg"
+                  onClick={() => {
+                    this.showAddModalHandler(this.state.selectedTable);
+                  }}
+                >
+                  Add entry
+                </Button>
               </Form.Group>
             </Form>
           </Col>
         </Row>
-        <DeleteModal
-          showModal={this.state.showDeleteModal}
-          closeHandler={this.modalCloseHandler}
-        >
-          Entry with ID {this.state.deletedEntryId} from{" "}
-          {this.state.selectedTable} table was deleted!
-        </DeleteModal>
+        {deleteModal}
+        {addModal}
         {results}
+        {editModal}
       </Container>
     );
   }

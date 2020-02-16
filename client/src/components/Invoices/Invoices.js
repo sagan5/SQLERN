@@ -12,6 +12,8 @@ import Aux from "../../hoc/Auxiliary/Auxiliary";
 import DeleteModal from "../../containers/Modals/DeleteModal/DeleteModal";
 import InputModal from "../../containers/Modals/InputModal/InputModal";
 import MissingModal from "../../containers/Modals/MissingModal/MissingModal";
+import AddModal from "../../containers/Modals/AddModal/AddModal";
+import EditModal from "../../containers/Modals/EditModal/EditModal";
 import { enterPressHandler } from "../../helpers";
 
 class Invoices extends Component {
@@ -27,6 +29,9 @@ class Invoices extends Component {
       deletedInvoiceId: null,
       showMissingModal: false,
       missingInvoicesIds: [],
+      showAddModal: false,
+      tableColumns: null,
+      showEditModal: false,
       error: null
     };
   }
@@ -126,8 +131,77 @@ class Invoices extends Component {
     this.setState({
       showDeleteModal: false,
       showEmptyIdModal: false,
-      showMissingModal: false
+      showMissingModal: false,
+      showAddModal: false,
+      showEditModal: false
     });
+  };
+
+  showAddModalHandler = () => {
+    axios
+      .get("/chinook/invoices")
+      .then(res => {
+        // convert received array of table columns to object
+        const tableColumnsObject = res.data.reduce(
+          (el, key) => Object.assign(el, { [key]: "" }),
+          {}
+        );
+        this.setState({ tableColumns: tableColumnsObject });
+      })
+      .then(() => {
+        this.setState({ showAddModal: true });
+      });
+  };
+
+  addInvoiceHandler = invoice => {
+    axios
+      .post("/invoice/add", { newEntry: invoice })
+      .then(res => {
+        if (res.status === 200) {
+          alert(res.data.msg);
+        } else {
+          alert("Something bad happened");
+        }
+      })
+      .catch(err => {
+        this.setState({ error: err });
+        console.log("addInvoiceHandler error", err);
+      });
+  };
+
+  getInvoiceHandler = id => {
+    axios
+      .get(`/invoice/${id}`)
+      .then(res => {
+        if (res.status === 200) {
+          this.setState({ editInvoiceData: res.data });
+        } else {
+          alert("Something bad happened");
+        }
+      })
+      .then(() => {
+        this.setState({ showEditModal: true });
+      })
+      .catch(err => {
+        this.setState({ error: err });
+        console.log("getInvoiceHandler error", err);
+      });
+  };
+
+  updateInvoiceHandler = data => {
+    axios
+      .put(`invoice/edit/${data[Object.keys(data)[0]]}`, { entryData: data })
+      .then(res => {
+        if (res.status === 200) {
+          alert(res.data.msg);
+          this.modalCloseHandler();
+        } else {
+          alert(res.data.msg);
+        }
+      })
+      .then(() => {
+        this.getInvoicesByIdsHandler();
+      });
   };
 
   render() {
@@ -139,6 +213,7 @@ class Invoices extends Component {
           data={this.state.results}
           // pass deleteInvoiceByIdHandler function to results table, delete button
           deleteButtonFunc={this.deleteInvoiceByIdHandler}
+          editButtonFunc={this.getInvoiceHandler}
         />
       );
     }
@@ -152,6 +227,75 @@ class Invoices extends Component {
         </Row>
       );
     }
+
+    let deleteModal = null;
+
+    if (this.state.showDeleteModal) {
+      deleteModal = (
+        <DeleteModal
+          showModal={this.state.showDeleteModal}
+          closeHandler={this.modalCloseHandler}
+        >
+          Invoice with ID {this.state.deletedInvoiceId} was deleted!
+        </DeleteModal>
+      );
+    }
+
+    let inputModal = null;
+
+    if (this.state.showEmptyIdModal) {
+      inputModal = (
+        <InputModal
+          showModal={this.state.showEmptyIdModal}
+          closeHandler={this.modalCloseHandler}
+        >
+          Please enter ID of at least one invoice!
+        </InputModal>
+      );
+    }
+
+    let missingModal = null;
+
+    if (this.state.showMissingModal) {
+      missingModal = (
+        <MissingModal
+          showModal={this.state.showMissingModal}
+          closeHandler={this.modalCloseHandler}
+        >
+          These Id's weren't found: {this.state.missingInvoicesIds}
+        </MissingModal>
+      );
+    }
+
+    let addModal = null;
+
+    if (this.state.showAddModal) {
+      addModal = (
+        <AddModal
+          showModal={this.state.showAddModal}
+          modalTitle="Add new invoice"
+          addEntryHandler={this.addInvoiceHandler}
+          tableColumns={this.state.tableColumns}
+          closeHandler={this.modalCloseHandler}
+        />
+      );
+    }
+
+    let editModal = null;
+
+    if (this.state.showEditModal) {
+      editModal = (
+        <EditModal
+          showModal={this.state.showEditModal}
+          modalTitle="Edit invoice data"
+          editEntryHandler={this.getInvoiceHandler}
+          updateEntryHandler={this.updateInvoiceHandler}
+          closeHandler={this.modalCloseHandler}
+          entryData={this.state.editInvoiceData}
+        ></EditModal>
+      );
+    }
+
     return (
       <Aux>
         <Row className="justify-content-center">
@@ -172,32 +316,26 @@ class Invoices extends Component {
               </Form.Group>
               <Button
                 variant="primary"
-                className="mb-2"
+                className="mb-2 m-2"
                 onClick={this.getInvoicesByIdsHandler}
               >
                 Get Invoices
               </Button>
+              <Button
+                variant="primary"
+                className="mb-2 m-2"
+                onClick={this.showAddModalHandler}
+              >
+                Add invoice
+              </Button>
             </Form>
           </Col>
         </Row>
-        <DeleteModal
-          showModal={this.state.showDeleteModal}
-          closeHandler={this.modalCloseHandler}
-        >
-          Invoice with ID {this.state.deletedInvoiceId} was deleted!
-        </DeleteModal>
-        <InputModal
-          showModal={this.state.showEmptyIdModal}
-          closeHandler={this.modalCloseHandler}
-        >
-          Please enter ID of at least one invoice!
-        </InputModal>
-        <MissingModal
-          showModal={this.state.showMissingModal}
-          closeHandler={this.modalCloseHandler}
-        >
-          These Id's weren't found: {this.state.missingInvoicesIds}
-        </MissingModal>
+        {deleteModal}
+        {inputModal}
+        {missingModal}
+        {addModal}
+        {editModal}
         {results}
       </Aux>
     );

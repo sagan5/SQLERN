@@ -49,6 +49,46 @@ router.delete("/:id", (req, res) => {
   });
 });
 
+// add new invoice
+
+router.post("/add", (req, res) => {
+  const { newEntry } = req.body;
+  const sql = `INSERT INTO invoices (Total, BillingPostalCode, BillingCountry, BillingState, BillingCity, BillingAddress, InvoiceDate, CustomerId) VALUES (${newEntry.Total}, ${newEntry.BillingPostalCode}, '${newEntry.BillingCountry}', '${newEntry.BillingState}', '${newEntry.BillingCity}', '${newEntry.BillingAddress}', '${newEntry.InvoiceDate}', ${newEntry.CustomerId});`;
+  db.run(sql, [], err => {
+    if (!err) {
+      res.status(200).json({
+        msg: `Invoice was successfully created`
+      });
+    } else {
+      res.status(400).json({ msg: `Error occured while adding invoice`, err });
+    }
+  });
+});
+
+// update invoice data
+
+router.put("/edit/:id", (req, res) => {
+  const entryId = parseInt(req.params.id);
+  const { entryData } = req.body;
+  console.log(entryData);
+  // check if genre with provided ID exists and update if true
+  const sql = `SELECT InvoiceId FROM invoices WHERE InvoiceId = ${entryId}`;
+  db.get(sql, (err, row) => {
+    if (row) {
+      const sql = `UPDATE invoices SET CustomerId = '${entryData.CustomerId}', InvoiceDate = '${entryData.InvoiceDate}', BillingAddress = '${entryData.BillingAddress}', BillingCity = '${entryData.BillingCity}', BillingState = '${entryData.BillingState}', BillingCountry = '${entryData.BillingCountry}', BillingPostalCode = '${entryData.BillingPostalCode}', Total = '${entryData.Total}' WHERE InvoiceID = ${entryId};`;
+      db.run(sql, [], err => {
+        if (!err) {
+          res.status(200).json({
+            msg: `Invoice with the ID ${entryId} was successfully edited`
+          });
+        } else {
+          res.status(404).json({ msg: `${err}` });
+        }
+      });
+    }
+  });
+});
+
 // router.get("/table/:table", (req, res) => {
 //   const table = req.params.table;
 //   const column = req.params.column;
